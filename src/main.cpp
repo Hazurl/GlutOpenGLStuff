@@ -54,7 +54,12 @@ GLFWwindow* init(int width, int height, const char* title, CB_ERR* cb_err, CB_KE
 }
 
 void createTriangle(GLuint& vbo, GLuint& vao) {
-    float vertices[] = { 0.f, 0.5f, 0.f, 0.5f, -0.5f, 0.f, -0.5f, -0.5f, 0.f};   
+    float vertices[] = { -0.5f, 0.5f, 0.f, 
+                         0.5f, 0.5f, 0.f, 
+                         0.5f, -0.5f, 0.f,
+                         -0.5f, 0.5f, 0.f, 
+                         0.5f, -0.5f, 0.f,
+                         -0.5f, -0.5f, 0.f};   
     glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -85,12 +90,12 @@ int main(int /* argc */, char** /* argv */) {
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        auto tf_matrix = glhaz::transformationMatrix(0, 0, 0, 0, 0, 0, 1, 1, 1);
+        auto tf_matrix = glhaz::transformationMatrix(0, 0, 0, 0, 0, 0, 500.f / 960, 500.f / 540, 1);
         shader.loadTranformMatrix(tf_matrix);
         
         glEnableVertexAttribArray(0);
         glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);    
+        glDrawArrays(GL_TRIANGLES, 0, 6);    
         glDisableVertexAttribArray(0);
         
         glfwPollEvents();    

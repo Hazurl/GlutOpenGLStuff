@@ -52,7 +52,7 @@ Mat4f rotationMatrix(float x, float y, float z) {
 }
 
 Mat4f transformationMatrix(float dx, float dy, float dz, float rx, float ry, float rz, float sx, float sy, float sz) {
-    return scaledMatrix(sx, sy, sz) * rotationMatrix(rx, ry, rz) * translationMatrix(dx, dy, dz);
+    return (scaledMatrix(sx, sy, sz) * rotationMatrix(rx, ry, rz)) * translationMatrix(dx, dy, dz);
 }
 
 }

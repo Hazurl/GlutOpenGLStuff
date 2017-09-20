@@ -1,20 +1,15 @@
 #include <GL/glew.h>
 #define GLFW_DLL
 #include <GLFW/glfw3.h>
+
 #include <iostream>
-#include <glhaz/Vec3f.hpp>
 
-struct V3f {
-    V3f(float x = 0.5, float y = 0.5, float z = 0.5) : x(x), y(y), z(z) {}
-    float x = 0.5, y = 0.5, z = 0.5;
+#include <glhaz/maths/Vec3.hpp>
+#include <glhaz/maths/Mat.hpp>
+#include <glhaz/maths/maths.hpp>
+#include <glhaz/shader/StaticShader.hpp>
 
-    operator const float*() const
-    {
-        return &(x);
-    }
-};
-
-using Vec3 = V3f;
+using Vec3 = glhaz::Vec3f;
 
 void error_callback(int error, const char* description) {
     std::cout << "Error " << error << ": " << description << std::endl;
@@ -58,6 +53,19 @@ GLFWwindow* init(int width, int height, const char* title, CB_ERR* cb_err, CB_KE
     return window;
 }
 
+void createTriangle(GLuint& vbo, GLuint& vao) {
+    float vertices[] = { 0.f, 0.5f, 0.f, 0.5f, -0.5f, 0.f, -0.5f, -0.5f, 0.f};   
+    glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+}
+
 int main(int /* argc */, char** /* argv */) {
     GLFWwindow* window;
     window = init(960, 540, "Test window", error_callback, key_callback);
@@ -67,60 +75,30 @@ int main(int /* argc */, char** /* argv */) {
     glDepthFunc(GL_LESS);
     glfwSetWindowPos(window, 480 + 1920, 270);
     glClearColor(0.1, 0.1, 0.1, 0);
-/*  ====================  */
 
-    float vertices[] = { 0.f, 0.5f, 0.f, 0.5f, -0.5f, 0.f, -0.5f, -0.5f, 0.f};   
-    GLuint vbo;
-    glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    GLuint vbo, vao;
+    createTriangle(vbo, vao);
     
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-/*
-    const char* vertex_shader =
-    "#version 150\n"
-    "in vec3 vp;"
-    "void main() {"
-    "  gl_Position = vec4(vp, 1.0);"
-    "}";
-    const char* fragment_shader =
-    "#version 150\n"
-    "out vec4 frag_colour;"
-    "void main() {"
-    "  frag_colour = vec4(0.5, 0.0, 0.5, 1.0);"
-    "}";
+    glhaz::StaticShader shader;
 
-    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vs, 1, &vertex_shader, NULL);
-    glCompileShader(vs);
-    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fs, 1, &fragment_shader, NULL);
-    glCompileShader(fs);
-
-    GLuint shader_prgm = glCreateProgram();
-    glAttachShader(shader_prgm, fs);
-    glAttachShader(shader_prgm, vs);
-    glLinkProgram(shader_prgm);
-*/    
+    shader.start();
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        //glUseProgram(shader_prgm);
         
+        auto tf_matrix = glhaz::transformationMatrix(0, 0, 0, 0, 0, 0, 1, 1, 1);
+        shader.loadTranformMatrix(tf_matrix);
+        
+        glEnableVertexAttribArray(0);
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);    
-            
+        glDisableVertexAttribArray(0);
+        
         glfwPollEvents();    
         glfwSwapBuffers(window);
     }
-    glDisableVertexAttribArray(0);
+    shader.stop();
     glfwDestroyWindow(window);
 
-    /*================*/
     glfwTerminate();
     return 0;
 }

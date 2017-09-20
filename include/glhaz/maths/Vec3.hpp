@@ -14,7 +14,7 @@ public:
 
     Vec3() {}
     Vec3(T x, T y, T z) : x(x), y(y), z(z) {}
-/*
+
     static Vec3<T> up()           { return {0, 1, 0};  }
     static Vec3<T> down()         { return {0, -1, 0}; }
     static Vec3<T> left()         { return {-1, 0, 0}; }
@@ -24,9 +24,9 @@ public:
 
     static Vec3<T> zero()         { return {0, 0, 0};  }
     static Vec3<T> units()        { return {1, 1, 1};  }
-*/
+
     ~Vec3() {}
-/*
+
     void set(T x, T y, T z) { this->x = x; this->y = y; this->z = z; }
     void set(Vec3<T> const& o) { x = o.x; y = o.y; z = o.z; }
 
@@ -100,7 +100,7 @@ public:
         is >> v.z;
         return is;
     }
-*/
+
 };
 
 using Vec3f = Vec3<float>;

@@ -18,9 +18,14 @@ void StaticShader::bindAttributes() {
 
 void StaticShader::getAllUniformLocations() {
     location_tf_mat = getUniformLocation("tf_mat");   
+    location_world_tf_mat = getUniformLocation("world_tf_mat");   
 }
 
-void StaticShader::loadTranformMatrix(Mat4f& tf) {
+void StaticShader::loadWorldTranformMatrix(Mat4f const& tf) {
+    loadMat(location_world_tf_mat, (float(&)[4][4])tf[0][0]);
+}
+
+void StaticShader::loadTranformMatrix(Mat4f const& tf) {
     loadMat(location_tf_mat, (float(&)[4][4])tf[0][0]);
 }
 

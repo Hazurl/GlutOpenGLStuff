@@ -8,6 +8,7 @@
 #include <glhaz/maths/Mat.hpp>
 #include <glhaz/maths/maths.hpp>
 #include <glhaz/shader/StaticShader.hpp>
+#include <glhaz/shape/Shape.hpp>
 
 using Vec3 = glhaz::Vec3f;
 
@@ -53,13 +54,26 @@ GLFWwindow* init(int width, int height, const char* title, CB_ERR* cb_err, CB_KE
     return window;
 }
 
-void createTriangle(GLuint& vbo, GLuint& vao) {
+void createTriangle(GLuint& vbo, GLuint& vao, GLuint& elem) {
     float vertices[] = { -0.5f, 0.5f, 0.f, 
                          0.5f, 0.5f, 0.f, 
                          0.5f, -0.5f, 0.f,
                          -0.5f, 0.5f, 0.f, 
                          0.5f, -0.5f, 0.f,
-                         -0.5f, -0.5f, 0.f};   
+                         -0.5f, -0.5f, 0.f};
+/*
+    float vertices[] = {
+        -0.5, 0.5, 0,
+        -0.5, -0.5, 0,
+        0.5, -0.5, 0,
+        0.5, 0.5, 0
+    };
+
+    float indexes[] = {
+        0, 1, 2,
+        1, 2, 3
+    };
+*/
     glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -69,38 +83,66 @@ void createTriangle(GLuint& vbo, GLuint& vao) {
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 }
 
 int main(int /* argc */, char** /* argv */) {
-    GLFWwindow* window;
-    window = init(960, 540, "Test window", error_callback, key_callback);
+    GLFWwindow* window = init(960, 540, "Test window", error_callback, key_callback);
     if (!window)
         return 1;
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glfwSetWindowPos(window, 480 + 1920, 270);
+    glfwSetWindowPos(window, 1920 + 480, 270);
     glClearColor(0.1, 0.1, 0.1, 0);
 
-    GLuint vbo, vao;
-    createTriangle(vbo, vao);
+    std::cout << "OpenGL Version : " << glGetString(GL_VERSION) << std::endl;
+
+    float vertices_square[] = {
+        -0.5f, 0.5f, 0.f,
+        -0.5f, -0.5f, 0.f,
+        0.5f, -0.5f, 0.f,
+        0.5f, 0.5f, 0.f
+    };
+
+    unsigned int indexes_square[] = {
+        0, 2, 1,
+        0, 3, 2
+    };
+
+    glhaz::Shape square(vertices_square, sizeof(vertices_square) / sizeof(float), indexes_square,  sizeof(indexes_square) / sizeof(unsigned int));
+
+    unsigned int indexes_triangle[] = {
+        0, 2, 1
+    };
+
+    glhaz::Shape triangle(vertices_square, sizeof(vertices_square) / sizeof(float) - 1, indexes_triangle,  sizeof(indexes_triangle) / sizeof(unsigned int));
     
     glhaz::StaticShader shader;
 
     shader.start();
+
+    int step = 0;
+    auto world = glhaz::transformationMatrix(0, 0, 0, 0, 0, 0, 540 / 960., 1, 1);
+    shader.loadWorldTranformMatrix(world);
+
+    square.scale({0.5, 0.5, 0.5});
+    triangle.scale({0.5, 0.5, 0.5});
+
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        auto tf_matrix = glhaz::transformationMatrix(0, 0, 0, 0, 0, 0, 500.f / 960, 500.f / 540, 1);
-        shader.loadTranformMatrix(tf_matrix);
-        
-        glEnableVertexAttribArray(0);
-        glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 6);    
-        glDisableVertexAttribArray(0);
+        step++;
+        square.position({-1, std::sin(step / 200.) / 2, 0});
+        shader.loadTranformMatrix(square.getTransform());
+        square.draw();
+
+        triangle.position({1, -std::sin(step / 200.) / 2, 0});
+        shader.loadTranformMatrix(triangle.getTransform());
+        triangle.draw();
         
         glfwPollEvents();    
         glfwSwapBuffers(window);
     }
+
     shader.stop();
     glfwDestroyWindow(window);
 

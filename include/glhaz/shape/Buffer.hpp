@@ -10,8 +10,13 @@ class Buffer {
 public:
 
     static GLuint make_VBO(float* vertices, int size);
+    static GLuint make_VBO();
     static GLuint make_IBO(unsigned int* indices, int size);
+    static GLuint make_IBO();
     static GLuint make_VAO();
+
+    static GLuint fill_VBO(GLuint vbo, float* vertices, int size);
+    static GLuint fill_IBO(GLuint ibo, unsigned int* indices, int size);
 
     static void bind_VBO(GLuint vbo);
     static void bind_IBO(GLuint vbo);

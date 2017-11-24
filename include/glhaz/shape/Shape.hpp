@@ -12,6 +12,7 @@ class Shape {
 public:
 
     Shape(float* vertices, int vsize, unsigned int* indices, int isize);
+    Shape();
 
     void draw();
     Mat4f getTransform() const;
@@ -24,9 +25,14 @@ public:
     Vec3f rotation(Vec3f const& new_rotation);
     Vec3f scale(Vec3f const& new_scale);
 
+protected:
+
+    void setVertices(float* vertices, unsigned int vsize);
+    void setIndices(unsigned int* indices, unsigned int isize);
+
 private:
 
-    unsigned int isize;
+    unsigned int vsize = 0, isize = 0;
     GLuint vbo, vao, ibo;
 
     Transform transform;

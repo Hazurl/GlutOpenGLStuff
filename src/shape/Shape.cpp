@@ -4,14 +4,25 @@
 
 namespace glhaz {
 
-Shape::Shape(float* vertices, int vsize, unsigned int* indices, int isize) : isize(isize) {
+Shape::Shape(float* vertices, int vsize, unsigned int* indices, int isize) 
+: vsize(vsize), isize(isize) {
     vao = Buffer::make_VAO();
     vbo = Buffer::make_VBO(vertices, vsize);
     ibo = Buffer::make_IBO(indices, isize);
+}
 
-    Buffer::unbind_IBO();
-    Buffer::unbind_VBO();
-    Buffer::unbind_VAO();
+Shape::Shape() {
+    vao = Buffer::make_VAO();
+    vbo = Buffer::make_VBO();
+    ibo = Buffer::make_IBO();
+}
+
+void Shape::setVertices(float* vertices, unsigned int size) {
+    Buffer::fill_VBO(vbo, vertices, vsize = size);
+}
+
+void Shape::setIndices(unsigned int* indices, unsigned int size) {
+    Buffer::fill_IBO(ibo, indices, isize = size);
 }
 
 void Shape::draw() {

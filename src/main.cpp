@@ -9,6 +9,7 @@
 #include <glhaz/maths/maths.hpp>
 #include <glhaz/shader/StaticShader.hpp>
 #include <glhaz/shape/Shape.hpp>
+#include <glhaz/shape/RectangleShape.hpp>
 #include <glhaz/window/Window.hpp>
 
 using Vec3 = glhaz::Vec3f;
@@ -45,8 +46,10 @@ int main(int /* argc */, char** /* argv */) {
             0, 2, 1,
             0, 3, 2
         };
+        
         window2.setContext();
-        glhaz::Shape square(vertices_square, sizeof(vertices_square) / sizeof(float), indexes_square,  sizeof(indexes_square) / sizeof(unsigned int));
+        //glhaz::Shape square(vertices_square, sizeof(vertices_square) / sizeof(float), indexes_square,  sizeof(indexes_square) / sizeof(unsigned int));
+        glhaz::RectangleShape square(0, 0, 1, 1);
 
         unsigned int indexes_triangle[] = {
             0, 2, 1
@@ -76,7 +79,9 @@ int main(int /* argc */, char** /* argv */) {
 
             window2.beginDraw();
 
-            square.position({0, std::sin(step / 20.f) / 2, 0});
+            square.position({-0.25, std::sin(step / 20.f) / 2 - 0.25, 0});
+            square.setWidth(1 + std::sin(step / 20.f) / 2);
+            square.setHeight(1 + std::sin(step / 20.f) / 2);
             window2.getShader().loadTranformMatrix(square.getTransform());
             square.draw();
 
@@ -84,7 +89,7 @@ int main(int /* argc */, char** /* argv */) {
 
         }
     } catch(...) {
-        std::cout << "noooo" << std::endl;
+        std::cout << "Exception !" << std::endl;
     }
     glfwTerminate();
     return 0;

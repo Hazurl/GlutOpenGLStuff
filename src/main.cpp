@@ -9,6 +9,7 @@
 #include <glhaz/maths/maths.hpp>
 #include <glhaz/shader/StaticShader.hpp>
 #include <glhaz/shape/Shape.hpp>
+#include <glhaz/window/Window.hpp>
 
 using Vec3 = glhaz::Vec3f;
 
@@ -21,131 +22,70 @@ void key_callback(GLFWwindow* window, int key, int /* scancode */, int action, i
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
 
-template<typename CB_ERR, typename CB_KEY>
-GLFWwindow* init(int width, int height, const char* title, CB_ERR* cb_err, CB_KEY* cb_key) {
-    glfwSetErrorCallback(cb_err);
-    if (!glfwInit()) {
-        std::cout << "Error: Failed to init glfw" << std::endl;
-        return nullptr;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(width, height, title, nullptr, nullptr);
-    if (!window) {
-        std::cout << "Error: Failed to create window" << std::endl;
-        glfwTerminate();
-        return nullptr;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetKeyCallback(window, cb_key);
-
-    glewExperimental = true;
-
-    GLenum res = glewInit();
-    if (res != GLEW_OK) {
-        std::cout << "Error: Failed to init glew: " << glewGetErrorString(res) << std::endl;
-        return nullptr;
-    }
-
-    return window;
-}
-
-void createTriangle(GLuint& vbo, GLuint& vao, GLuint& elem) {
-    float vertices[] = { -0.5f, 0.5f, 0.f, 
-                         0.5f, 0.5f, 0.f, 
-                         0.5f, -0.5f, 0.f,
-                         -0.5f, 0.5f, 0.f, 
-                         0.5f, -0.5f, 0.f,
-                         -0.5f, -0.5f, 0.f};
-/*
-    float vertices[] = {
-        -0.5, 0.5, 0,
-        -0.5, -0.5, 0,
-        0.5, -0.5, 0,
-        0.5, 0.5, 0
-    };
-
-    float indexes[] = {
-        0, 1, 2,
-        1, 2, 3
-    };
-*/
-    glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    glEnableVertexAttribArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-}
-
 int main(int /* argc */, char** /* argv */) {
-    GLFWwindow* window = init(960, 540, "Test window", error_callback, key_callback);
-    if (!window)
-        return 1;
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-    glfwSetWindowPos(window, 480, 270);
-    glClearColor(0.1, 0.1, 0.1, 0);
+    try {
+        glhaz::Window window(360, 360, "Test window", error_callback, key_callback);
+        window.setClearColor(0.1, 0.1, 0.1);
+        window.setPosition(100, 100);
 
-    std::cout << "OpenGL Version : " << glGetString(GL_VERSION) << std::endl;
+        glhaz::Window window2(360, 360, "Second window", error_callback, key_callback);
+        window.setClearColor(0.1, 0.1, 0.1);
+        window.setPosition(460, 100);
 
-    float vertices_square[] = {
-        -0.5f, 0.5f, 0.f,
-        -0.5f, -0.5f, 0.f,
-        0.5f, -0.5f, 0.f,
-        0.5f, 0.5f, 0.f
-    };
+        std::cout << "OpenGL Version : " << glGetString(GL_VERSION) << std::endl;
 
-    unsigned int indexes_square[] = {
-        0, 2, 1,
-        0, 3, 2
-    };
+        float vertices_square[] = {
+            -0.5f, 0.5f, 0.f,
+            -0.5f, -0.5f, 0.f,
+            0.5f, -0.5f, 0.f,
+            0.5f, 0.5f, 0.f
+        };
 
-    glhaz::Shape square(vertices_square, sizeof(vertices_square) / sizeof(float), indexes_square,  sizeof(indexes_square) / sizeof(unsigned int));
+        unsigned int indexes_square[] = {
+            0, 2, 1,
+            0, 3, 2
+        };
+        window2.setContext();
+        glhaz::Shape square(vertices_square, sizeof(vertices_square) / sizeof(float), indexes_square,  sizeof(indexes_square) / sizeof(unsigned int));
 
-    unsigned int indexes_triangle[] = {
-        0, 2, 1
-    };
+        unsigned int indexes_triangle[] = {
+            0, 2, 1
+        };
 
-    glhaz::Shape triangle(vertices_square, sizeof(vertices_square) / sizeof(float) - 1, indexes_triangle,  sizeof(indexes_triangle) / sizeof(unsigned int));
+        window.setContext();
+        glhaz::Shape triangle(vertices_square, sizeof(vertices_square) / sizeof(float) - 1, indexes_triangle,  sizeof(indexes_triangle) / sizeof(unsigned int));
+
+        int step = 0;
+        auto world = glhaz::transformationMatrix(0, 0, 0, 0, 0, 0, 360 / 360.f, 1, 1);
+
+        window.getShader().loadWorldTranformMatrix(world);
+        window2.getShader().loadWorldTranformMatrix(world);
+
+        square.scale({0.5, 0.5, 0.5});
+        triangle.scale({0.5, 0.5, 0.5});
+
+        while (!window.shouldClose() && !window2.shouldClose()) {
+            step++;
+            window.beginDraw();
     
-    glhaz::StaticShader shader;
+            triangle.position({0, -std::sin(step / 20.f) / 2, 0});
+            window.getShader().loadTranformMatrix(triangle.getTransform());
+            triangle.draw();
 
-    shader.start();
+            window.endDraw();
 
-    int step = 0;
-    auto world = glhaz::transformationMatrix(0, 0, 0, 0, 0, 0, 540 / 960., 1, 1);
-    shader.loadWorldTranformMatrix(world);
+            window2.beginDraw();
 
-    square.scale({0.5, 0.5, 0.5});
-    triangle.scale({0.5, 0.5, 0.5});
+            square.position({0, std::sin(step / 20.f) / 2, 0});
+            window2.getShader().loadTranformMatrix(square.getTransform());
+            square.draw();
 
-    while (!glfwWindowShouldClose(window)) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        step++;
-        square.position({-1, std::sin(step / 200.) / 2, 0});
-        shader.loadTranformMatrix(square.getTransform());
-        square.draw();
+            window2.endDraw();
 
-        triangle.position({1, -std::sin(step / 200.) / 2, 0});
-        shader.loadTranformMatrix(triangle.getTransform());
-        triangle.draw();
-        
-        glfwPollEvents();    
-        glfwSwapBuffers(window);
+        }
+    } catch(...) {
+        std::cout << "noooo" << std::endl;
     }
-
-    shader.stop();
-    glfwDestroyWindow(window);
-
     glfwTerminate();
     return 0;
 }

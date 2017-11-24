@@ -92,7 +92,7 @@ int main(int /* argc */, char** /* argv */) {
         return 1;
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glfwSetWindowPos(window, 1920 + 480, 270);
+    glfwSetWindowPos(window, 480, 270);
     glClearColor(0.1, 0.1, 0.1, 0);
 
     std::cout << "OpenGL Version : " << glGetString(GL_VERSION) << std::endl;
